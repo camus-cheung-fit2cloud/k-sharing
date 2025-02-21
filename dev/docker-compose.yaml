@@ -1,22 +1,97 @@
 version: "2.1"
 services:
+    traefik:
+        container_name: traefik
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./traefik/config:/config
+            - ./traefik/acme:/letsencrypt
+        image: traefik
+        restart: unless-stopped
+        command:
+#            - --log.level=DEBUG
+            - --entryPoints.web.address=:80
+            - --entryPoints.websecure.address=:443
+            - --entryPoints.web.http.redirections.entryPoint.to=websecure
+            - --entryPoints.web.http.redirections.entryPoint.scheme=https
+            - --api.insecure=true
+            - --api.dashboard=true
+            - --providers.docker=true
+            - --certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+            - --certificatesresolvers.le.acme.httpchallenge=true
+            - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+            - --certificatesresolvers.le.acme.email=free7hem@gmail.com
+            - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+            - --providers.docker.endpoint=unix:///var/run/docker.sock
+            - --providers.file.directory=/config
+            - --providers.file.watch=true
+            - --providers.docker.exposedByDefault=false
+            - --serversTransport.insecureSkipVerify=true
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.traefik.service=api@internal
+            - traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)
+            - traefik.http.routers.traefik.tls.certresolver=le
+            - traefik.http.routers.traefik.middlewares=traefik-auth
+            - traefik.http.middlewares.traefik-auth.basicauth.users=cheung:$$apr1$$hO9nou0f$$MAJezxrADmr3zhJx4Ymm/1
+
     grav:
         image: lscr.io/linuxserver/grav:latest
         container_name: grav
         environment:
-            - "PUID=1000"
-            - "PGID=1000"
-            - "TZ=Asia/Shanghai"
+            - PUID=1000
+            - PGID=1000
+            - TZ=Asia/Shanghai
         volumes:
-            - "./grav/config:/config"
+            - ./grav/config:/config
         labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.grav.service=grav"
-            - "traefik.http.routers.grav.rule=Host(`grav.${DOMAIN}`)"
-            - "traefik.http.routers.grav.tls.certresolver=le"
-            - "traefik.http.routers.grav.middlewares=traefik-auth"
-            - "traefik.http.services.grav.loadbalancer.server.port=80"
+            - traefik.enable=true
+            - traefik.http.routers.grav.service=grav
+            - traefik.http.routers.grav.rule=Host(`grav.${DOMAIN}`)
+            - traefik.http.routers.grav.tls.certresolver=le
+            - traefik.http.routers.grav.middlewares=traefik-auth
+            - traefik.http.services.grav.loadbalancer.server.port=80
 
+    dozzle:
+        container_name: dozzle
+        restart: always
+        image: amir20/dozzle:latest
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.dozzle.rule=Host(`dozzle.${DOMAIN}`)
+            - traefik.http.routers.dozzle.tls.certresolver=le
+            - traefik.http.routers.dozzle.middlewares=traefik-auth
+
+    filebrowser:
+        volumes:
+            - /:/srv:rw
+            - ./filebrowser/database:/database
+            - ./filebrowser/config:/config
+        environment:
+            - PUID=0
+            - PGID=0
+        image: 'filebrowser/filebrowser:s6'
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.file.rule=Host(`file.${DOMAIN}`)
+            - traefik.http.routers.file.tls.certresolver=le
+
+    homer:
+        restart: unless-stopped
+        volumes:
+            - ./hommer/config:/www/assets
+        image: 'b4bz/homer:latest'
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.homer.rule=Host(`hkomer.${DOMAIN}`)
+            - traefik.http.routers.homer.service=homer
+            - traefik.http.routers.homer.tls.certresolver=le
+            - traefik.http.services.homer.loadbalancer.server.port=8080
 networks:
     default:
         external: true
