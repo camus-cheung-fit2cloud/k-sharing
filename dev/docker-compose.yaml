@@ -1,0 +1,23 @@
+version: "2.1"
+services:
+    grav:
+        image: lscr.io/linuxserver/grav:latest
+        container_name: grav
+        environment:
+            - "PUID=1000"
+            - "PGID=1000"
+            - "TZ=Asia/Shanghai"
+        volumes:
+            - "./grav/config:/config"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.grav.service=grav"
+            - "traefik.http.routers.grav.rule=Host(`grav.${DOMAIN}`)"
+            - "traefik.http.routers.grav.tls.certresolver=le"
+            - "traefik.http.routers.grav.middlewares=traefik-auth"
+            - "traefik.http.services.grav.loadbalancer.server.port=80"
+
+networks:
+    default:
+        external: true
+        name: traefik

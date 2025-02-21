@@ -1,0 +1,102 @@
+version: '3.3'
+services:
+    jenkins:
+        privileged: true
+        user: root
+        env_file:
+            - .env
+        environment:
+            - JAVA_OPTS=-Djenkins.security.FrameOptionsPageDecorator.enabled=false
+        volumes:
+            - ./jenkins/jenkins_home:/var/jenkins_home
+            - /usr/bin/docker:/usr/bin/docker
+        image: jenkins/jenkins:lts-jdk17
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.jenkins.rule=Host(`ci.${DOMAIN}`)
+            - traefik.http.routers.jenkins.tls.certresolver=le
+    registry-ui:
+        container_name: registry-ui
+        image: parabuzzle/craneoperator:latest
+        environment:
+            - REGISTRY_HOST=registry
+            - REGISTRY_PORT=5000
+            - REGISTRY_PROTOCOL=http
+            - SSL_VERIFY=false
+#            - ALLOW_REGISTRY_LOGIN=true
+            - REGISTRY_TITLE=My Private Docker Registry
+            - REGISTRY_ALLOW_DELETE=true
+            - SESSION_SECRET=Calong@2015
+            - REGISTRY_PUBLIC_URL=registry.${DOMAIN}
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.registry-ui.rule=Host(`registry-console.${DOMAIN}`)
+            - traefik.http.services.registry-ui.loadbalancer.server.port=80
+            - traefik.http.routers.registry-ui.tls.certresolver=le
+            
+    registry:
+        container_name: registry
+        image: 'registry:2'
+        env_file:
+            - .env
+        environment:
+            - REGISTRY_HTTP_SECRET=Calong@2015
+            - REGISTRY_STORAGE_DELETE_ENABLED=true
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.registry.rule=Host(`registry.${DOMAIN}`)
+            - traefik.http.services.registry.loadbalancer.server.port=5000
+            - traefik.http.routers.registry.tls.certresolver=le
+        volumes:
+            - ./registry/data:/var/lib/registry
+            
+    watchtower:
+        restart: unless-stopped
+        image: containrrr/watchtower
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /root/.docker/config.json:/config.json
+        env_file:
+            - .env
+        environment:
+            WATCHTOWER_CLEANUP: 'true'
+            WATCHTOWER_DEBUG: 'true'
+            WATCHTOWER_INCLUDE_RESTARTING: 'true'
+            WATCHTOWER_INCLUDE_STOPPED: 'true'
+            WATCHTOWER_REVIVE_STOPPED: 'true'
+            WATCHTOWER_POLL_INTERVAL: '86400 '
+            WATCHTOWER_LABEL_ENABLE: 'true'
+            WATCHTOWER_MONITOR_ONLY: 'false'
+            WATCHTOWER_NO_PULL: 'true'
+            WATCHTOWER_RUN_ONCE: 'false'
+            WATCHTOWER_HTTP_API_UPDATE: 'true'
+            WATCHTOWER_HTTP_API_TOKEN: 'Calong@2015'
+            WATCHTOWER_NOTIFICATIONS: 'shoutrrr'
+            WATCHTOWER_NOTIFICATIONS_HOSTNAME: 'community-172.16.10.97'
+            WATCHTOWER_NOTIFICATION_TITLE_TAG: 'dev'
+            WATCHTOWER_NOTIFICATIONS_LEVEL: 'info'
+            WATCHTOWER_NOTIFICATION_URL: 'ntfy://ntfy.fit2cloud.org/watchtower?title=WatchtowerUpdates'
+        labels:
+            - traefik.enable=false
+            
+    ntfy:
+        image: binwiederhier/ntfy
+        container_name: ntfy
+        command:
+            - serve
+        env_file:
+            - .env
+        environment:
+            - TZ=Asia/Shanghai
+        volumes:
+            - ./ntfy/cache:/var/cache/ntfy
+            - ./ntfy/config:/etc/ntfy
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.ntfy.rule=Host(`ntfy.${DOMAIN}`)
+            - traefik.http.routers.ntfy.tls.certresolver=le
+
+networks:
+    default:
+        external: true
+        name: traefik
