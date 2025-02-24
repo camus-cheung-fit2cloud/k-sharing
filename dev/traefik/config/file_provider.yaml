@@ -1,0 +1,13 @@
+http:
+  routers:
+    portainer:
+      rule: "Host(`portainer.fit2cloud.org`)"
+      service: portainer
+      tls:
+        certresolver: le
+
+  services:
+    portainer:
+      loadbalancer:
+        servers:
+          - url: "https://portainer:9443"
