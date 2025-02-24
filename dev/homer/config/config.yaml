@@ -65,13 +65,24 @@ links:
 # First level array represent a group.
 # Leave only a "items" key if not using group (group name, icon & tagstyle are optional, section separation will not be displayed).
 services:
-  - name: "Devops"
+  - name: "Demo app"
     icon: "fa-solid fa-server"
     items:
-      - name: "jenkins"
-        icon: "fab fa-jenkins"
-        url: "https://ci.fit2cloud.org"
+      - name: "Github"
+        icon: "fab fa-github"
+        url: "https://github.com/camus-cheung-fit2cloud/k-sharing-demo-app"
         target: "_blank"
+      - name: "Jenkins"
+        icon: "fab fa-jenkins"
+        url: "https://ci.fit2cloud.org/job/demo-app"
+        target: "_blank"
+      - name: "Portainer"
+        icon: "fab fa-docker"
+        url: "https://portainer.fit2cloud.org/#!/3/docker/stacks/demo-app?id=4&type=2&regular=true&orphaned=false&orphanedRunning=false"
+        target: "_blank"
+  - name: "Dev"
+    icon: "fa-solid fa-server"
+    items:
       - name: "registry"
         icon: "fab fa-docker"
         url: "https://registry-console.fit2cloud.org"
@@ -80,9 +91,6 @@ services:
         icon: "fab fa-docker"
         url: "https://ntfy.fit2cloud.org"
         target: "_blank"
-  - name: "Servers"
-    icon: "fa-solid fa-server"
-    items:
       - name: "Portainer"
         icon: "fab fa-docker"
         url: "https://portainer.fit2cloud.org/#!/3/docker/stacks/devops?type=2&external=true"
