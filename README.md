@@ -28,9 +28,9 @@ curl -H "Authorization: Bearer Calong@2015" watchtower:8080/v1/update -v
 
 ### demo app
 
-build registry.fit2cloud.org/demo-app:latest
-docker push registry.fit2cloud.org/demo-app:latest
+build demo-app image
 
 ```sh
 docker build -t registry.fit2cloud.org/demo-app:latest .
+docker push registry.fit2cloud.org/demo-app:latest
 ```

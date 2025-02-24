@@ -78,8 +78,9 @@ services:
             WATCHTOWER_NOTIFICATIONS: 'shoutrrr'
             WATCHTOWER_NOTIFICATIONS_HOSTNAME: 'community-172.16.10.97'
             WATCHTOWER_NOTIFICATION_TITLE_TAG: 'dev'
-            WATCHTOWER_NOTIFICATIONS_LEVEL: 'info'
-            WATCHTOWER_NOTIFICATION_URL: 'ntfy://ntfy.fit2cloud.org/watchtower?title=WatchtowerUpdates'
+            WATCHTOWER_NOTIFICATION_SKIP_TITLE: True
+            WATCHTOWER_NOTIFICATIONS_LEVEL: 'debug'
+            WATCHTOWER_NOTIFICATION_URL: 'ntfy://ntfy.fit2cloud.org/my_watchtower_topic?title=WatchtowerUpdates'
         labels:
             - traefik.enable=false
             
