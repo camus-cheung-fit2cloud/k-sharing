@@ -12,7 +12,7 @@ write a ppt for my internal tech knowledge sharing, introduce a simple fullly do
 
 https://g.co/gemini/share/667d9847a3f5
 
-## componets
+## devops
 
 ### local registry
 
@@ -24,6 +24,26 @@ docker tag hello-world registry.fit2cloud.org/hello-world
 # push
 docker push  registry.fit2cloud.org/hello-world
 ```
+
+### demo app
+
+```Dockerfile
+# Use the official Nginx image from the Docker Hub
+FROM nginx:latest
+
+# Declare a build argument that changes for each build
+ARG CACHEBUST=1
+
+# Replace the content of index.html with 'Hello' followed by the current timestamp
+RUN echo "Hello - $(TZ='Asia/Shanghai' date)" > /usr/share/nginx/html/index.html
+```
+
+
+```sh
+docker build -t registry.fit2cloud.org/demo-app:latest .
+docker push registry.fit2cloud.org/demo-app:latest
+```
+
 
 ### jenkins
 
@@ -50,16 +70,8 @@ pipeline {
 }
 ```
 
-### trigger watchtower
+### watchtower
 
 ```sh
 curl -H "Authorization: Bearer Calong@2015" watchtower:8080/v1/update -v
-```
-
-### demo app
-
-```sh
-docker build -t registry.fit2cloud.org/demo-app:latest .
-docker build --build-arg CACHEBUST=$(date +%s) -t registry.fit2cloud.org/demo-app:latest .
-docker push registry.fit2cloud.org/demo-app:latest
 ```
