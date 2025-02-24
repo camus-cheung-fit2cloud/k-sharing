@@ -12,7 +12,7 @@ write a ppt for my internal tech knowledge sharing, introduce a simple fullly do
 
 https://g.co/gemini/share/667d9847a3f5
 
-## demo
+## componets
 
 ### local registry
 
